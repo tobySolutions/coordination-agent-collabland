@@ -312,7 +312,7 @@ export class MessageManager {
     const response = await generateMessageResponse({
       runtime: this.runtime,
       context,
-      modelClass: ModelClass.LARGE,
+      modelClass: ModelClass.SMALL,
     });
     console.log("[_generateResponse] check2");
     if (!response) {
