@@ -120,19 +120,23 @@ export class SendETHAction extends CollabLandBaseAction {
           return false;
         }
 
+        console.log("[SendETHAction] chainId", chainId);
+
         let account: BotAccountMemory | null = null;
         for (const memory of onChainMemories) {
           if (
             memory.content.smartAccount &&
             memory.content.type === "evm" && // Has to be EVM for sending ETH
-            memory.content.chainId === chainId
+            memory.content.chainId == chainId
           ) {
             account = memory.content as unknown as BotAccountMemory;
+            console.log("[SendETHAction] account found", account);
             break;
           }
         }
 
         if (!account?.smartAccount) {
+          console.log("[SendETHAction] account not found");
           _callback?.({
             text: "I cannot proceed because I can't determine my account. Can you help me with which chain you want me to send ETH to?",
             action: "GET_SMART_ACCOUNT",
@@ -209,7 +213,7 @@ export class SendETHAction extends CollabLandBaseAction {
 
         console.log("Hitting Collab.Land APIs to submit user operation...");
         const payload = {
-          contractAddress: extractedFundData.account,
+          target: extractedFundData.account,
           value:
             "0x" + ethers.parseEther(extractedFundData.amount).toString(16),
           calldata: "",

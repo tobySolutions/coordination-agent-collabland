@@ -25,9 +25,10 @@ export default function HelloWorld() {
 
   return (
     <div className="flex flex-col items-center w-full space-y-4">
-      <h1 className="text-2xl font-bold">Hello Collab-thon</h1>
+      <h1 className="text-2xl font-bold">Hello AI Agent Starter Kit</h1>
       <pre className="text-blue-500">
-        Get started on the client by editing /client/_components/HelloWorld.tsx
+        Get started on the client by editing
+        /client/app/_components/HelloWorld.tsx
       </pre>
       <br />
       <div>

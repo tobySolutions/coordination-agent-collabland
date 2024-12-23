@@ -2,6 +2,7 @@ import { AnyType } from "@/utils.js";
 import { Memory, Provider, IAgentRuntime, State } from "@ai16z/eliza";
 import { ethers } from "ethers";
 import { chainMap } from "../../utils.js";
+import { BotAccountMemory } from "../types.js";
 
 export class CollabLandWalletBalanceProvider implements Provider {
   async get(
@@ -40,10 +41,14 @@ export class CollabLandWalletBalanceProvider implements Provider {
       return "";
     }
 
-    let account = null;
+    let account: BotAccountMemory | null = null;
     for (const memory of onChainMemories) {
-      if (memory.content.smartAccount && memory.content.chainId === chainId) {
-        account = memory.content;
+      if (
+        memory.content.smartAccount &&
+        memory.content.type === "evm" &&
+        memory.content.chainId == chainId
+      ) {
+        account = memory.content as unknown as BotAccountMemory;
         break;
       }
     }
@@ -55,7 +60,7 @@ export class CollabLandWalletBalanceProvider implements Provider {
       "[CollabLandWalletBalanceProvider] account found in memories",
       account
     );
-    const provider = ethers.getDefaultProvider(chainId);
+    const provider = ethers.getDefaultProvider(account.chainId);
     const balance = await provider.getBalance(account.smartAccount as string);
     const formattedBalance = ethers.formatEther(balance);
     console.log("[CollabLandWalletBalanceProvider] balance", formattedBalance);

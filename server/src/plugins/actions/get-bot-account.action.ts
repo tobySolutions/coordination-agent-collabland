@@ -98,9 +98,9 @@ export class GetBotAccountAction extends CollabLandBaseAction {
         return true;
       }
       try {
-        console.log("Hitting Collab.Land APIs to get the smart account...");
+        console.log("Hitting Collab.Land APIs to get the smart accounts...");
         const response = await this.client.get<BotAccountResponse>(
-          `/telegrambot/account`,
+          `/telegrambot/accounts`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -202,6 +202,21 @@ ${response.data.solana.map((solanaAccount) => `• ${solanaAccount.address} (${s
           user: "{{user1}}",
           content: {
             text: "What is your smart account?",
+          },
+        },
+        {
+          user: "{{agentName}}",
+          content: {
+            text: "",
+            action: "GET_SMART_ACCOUNT",
+          },
+        },
+      ],
+      [
+        {
+          user: "{{user1}}",
+          content: {
+            text: "What is your account?",
           },
         },
         {
