@@ -350,3 +350,21 @@ TOKEN_DETAILS_PATH=token.jsonc
 - Express.js: https://expressjs.com/ ⚡
 - Tailwind CSS: https://tailwindcss.com/docs 💅
 - TypeScript: https://www.typescriptlang.org/docs/ 📘
+
+## 📝 Contributing
+
+### Commit Message Format
+
+Follow these commit message guidelines to automate changelog generation:
+
+- `feat: add new feature` - New features (generates under 🚀 Features)
+- `fix: resolve bug` - Bug fixes (generates under 🐛 Bug Fixes)
+- `docs: update readme` - Documentation changes (generates under 📝 Documentation)
+- `chore: update deps` - Maintenance (generates under 🧰 Maintenance)
+
+Example:
+
+```bash
+git commit -m "feat: add OAuth support for Discord"
+git commit -m "fix: resolve token validation issue"
+```
