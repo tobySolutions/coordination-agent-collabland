@@ -1,4 +1,4 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import helloRouter from "./routes/hello.js";
@@ -8,10 +8,12 @@ import { dirname } from "path";
 import { NgrokService } from "./services/ngrok.service.js";
 import { TelegramService } from "./services/telegram.service.js";
 import { IService } from "./services/base.service.js";
-import twitterRouter from './routes/twitter.js';
-import discordRouter from './routes/discord.js';
-import cookieParser from 'cookie-parser';
-import githubRouter from './routes/github.js';
+import twitterRouter from "./routes/twitter.js";
+import discordRouter from "./routes/discord.js";
+import cookieParser from "cookie-parser";
+import githubRouter from "./routes/github.js";
+import { AnyType } from "./utils.js";
+import { isHttpError } from "http-errors";
 
 // Convert ESM module URL to filesystem path
 const __filename = fileURLToPath(import.meta.url);
@@ -29,15 +31,8 @@ dotenv.config({
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Configure CORS with allowed origins
-app.use(cors({
-  origin: [
-    'http://localhost:3000',  // Local development
-    process.env.CLIENT_URL,   // Production client URL
-    /\.ngrok\..+$/          // Allow all ngrok domains with any TLD
-  ].filter(Boolean) as (string | RegExp)[],
-  credentials: true
-}));
+// Configure CORS with ALL allowed origins
+app.use(cors());
 
 // Parse JSON request bodies
 app.use(express.json());
@@ -53,17 +48,35 @@ const telegramService = TelegramService.getInstance();
 app.use("/telegram/webhook", telegramService.getWebhookCallback());
 
 // Mount Twitter OAuth routes
-app.use('/auth/twitter', twitterRouter);
+app.use("/auth/twitter", twitterRouter);
 
 // Mount Discord OAuth routes
-app.use('/auth/discord', discordRouter);
+app.use("/auth/discord", discordRouter);
 
 // Mount GitHub OAuth routes
-app.use('/auth/github', githubRouter);
+app.use("/auth/github", githubRouter);
 
-// No-op middleware (can be used for logging/debugging)
-app.use((_req, _res, next) => {
-  next();
+// 404 handler
+app.use((_req: Request, _res: Response, _next: NextFunction) => {
+  _res.status(404).json({
+    message: `Route ${_req.method} ${_req.url} not found`,
+  });
+});
+
+app.use((_err: AnyType, _req: Request, _res: Response, _next: NextFunction) => {
+  if (isHttpError(_err)) {
+    _res.status(_err.statusCode).json({
+      message: _err.message,
+    });
+  } else if (_err instanceof Error) {
+    _res.status(500).json({
+      message: `Internal Server Error: ${_err.message}`,
+    });
+  } else {
+    _res.status(500).json({
+      message: `Internal Server Error`,
+    });
+  }
 });
 
 // Start server and initialize services

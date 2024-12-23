@@ -34,6 +34,10 @@ const ENV_HINTS = {
     "Enter your Eliza character path, if you are using a custom character.\n(Press Enter/Return to inject the default character path)",
   TOKEN_DETAILS_PATH:
     "Enter your WOW.XYZ ERC20 token details JSON path, if you are using a custom token details.\n(Press Enter/Return to inject the default token details path)",
+  TWITTER_CLIENT_ID:
+    "Enter your Twitter client ID, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
+  TWITTER_CLIENT_SECRET:
+    "Enter your Twitter client secret, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
   // Add more hints as needed from .env.example
 };
 

@@ -25,7 +25,7 @@ export function TwitterLogin() {
     try {
       // Request OAuth initialization from backend
       const response = await fetch(
-        `/api/auth/twitter/auth/init`, 
+        `/api/auth/twitter/init`, 
         {
           method: 'POST',
           headers: {
