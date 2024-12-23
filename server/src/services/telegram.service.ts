@@ -3,6 +3,7 @@ import { BaseService } from "./base.service.js";
 import { ElizaService } from "./eliza.service.js";
 import {
   AnyType,
+  getCollablandApiUrl,
   getTokenMetadataPath,
   MintResponse,
   TokenMetadata,
@@ -79,7 +80,7 @@ export class TelegramService extends BaseService {
             AnyType,
             AxiosResponse<MintResponse>
           >(
-            "https://api-qa.collab.land/accountkit/telegrambot/mint?chainId=8453",
+            `${getCollablandApiUrl()}/telegrambot/evm/mint?chainId=8453`,
             {
               name: tokenInfo.name,
               symbol: tokenInfo.symbol,

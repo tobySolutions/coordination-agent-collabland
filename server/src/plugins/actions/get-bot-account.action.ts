@@ -90,7 +90,7 @@ export class GetBotAccountAction extends CollabLandBaseAction {
       try {
         console.log("Hitting Collab.Land APIs...");
         const response = await this.client.get<BotAccountResponse>(
-          `/telegrambot/account?chainId=${chainId}`,
+          `/telegrambot/account`,
           {
             headers: {
               "Content-Type": "application/json",

@@ -255,7 +255,7 @@ export class SendETHAction extends CollabLandBaseAction {
         console.log("[SendETHAction] payload", payload);
         const { data: _resData } =
           await this.client.post<ExecuteUserOpResponse>(
-            `/telegrambot/submitUserOperation?chainId=${chainId}`,
+            `/telegrambot/evm/submitUserOperation?chainId=${chainId}`,
             payload,
             {
               headers: {
@@ -293,7 +293,7 @@ export class SendETHAction extends CollabLandBaseAction {
         );
         const { data: _userOpReceiptData } =
           await this.client.get<UserOperationReceipt>(
-            `/telegrambot/userOperationReceipt?chainId=${_resData.chainId}&userOperationHash=${_resData.userOperationHash}`,
+            `/telegrambot/evm/userOperationReceipt?chainId=${_resData.chainId}&userOperationHash=${_resData.userOperationHash}`,
             {
               headers: {
                 "Content-Type": "application/json",

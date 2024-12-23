@@ -2,6 +2,8 @@
 
 import { resolve } from "path";
 const __dirname = new URL(".", import.meta.url).pathname;
+import { config } from "dotenv";
+config();
 
 export type AnyType = any;
 export const chainMap = {
@@ -47,3 +49,9 @@ export interface MintResponse {
     };
   };
 }
+
+export const getCollablandApiUrl = () => {
+  return (
+    process.env.COLLABLAND_API_URL || "https://api-qa.collab.land/accountkit/v1"
+  );
+};
