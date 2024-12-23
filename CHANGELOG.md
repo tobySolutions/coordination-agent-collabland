@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.3](https://github.com/abridged/AI-Agent-Starter-Kit/compare/v1.1.2...v1.1.3) (2024-12-23)
+
+
+### Bug Fixes
+
+* changelof generator ([74e1e91](https://github.com/abridged/AI-Agent-Starter-Kit/commit/74e1e91b10a216a253d90f54fefd5835114a48bf))
+
 ### [1.1.2](https://github.com/abridged/AI-Agent-Starter-Kit/compare/v1.1.1...v1.1.2) (2024-12-23)
 
 
