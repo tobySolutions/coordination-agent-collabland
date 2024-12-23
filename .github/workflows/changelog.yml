@@ -7,6 +7,8 @@ on:
 jobs:
   generate-changelog:
     runs-on: ubuntu-latest
+    container:
+      image: githubchangeloggenerator/github-changelog-generator
     steps:
       - uses: actions/checkout@v4
         with:
@@ -14,10 +16,6 @@ jobs:
 
       - name: Generate Changelog
         run: |
-          # Install github-changelog-generator if not using container
-          gem install github_changelog_generator
-
-          # Generate changelog
           github_changelog_generator \
             -u ${{ github.repository_owner }} \
             -p ${{ github.event.repository.name }} \
