@@ -16,12 +16,25 @@ jobs:
 
       - name: Generate Changelog
         run: |
-          github_changelog_generator \
-            -u ${{ github.repository_owner }} \
-            -p ${{ github.event.repository.name }} \
-            --token ${{ secrets.GITHUB_TOKEN }} \
-            --since-tag $(git describe --tags --abbrev=0 `git rev-list --tags --skip=1 --max-count=1`) \
-            --future-release ${{ github.event.release.tag_name }}
+          # Get previous tag or use empty string if none exists
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$PREV_TAG" ]; then
+            # First release - don't use since-tag
+            github_changelog_generator \
+              -u ${{ github.repository_owner }} \
+              -p ${{ github.event.repository.name }} \
+              --token ${{ secrets.GITHUB_TOKEN }} \
+              --future-release ${{ github.event.release.tag_name }}
+          else
+            # Subsequent releases - use since-tag
+            github_changelog_generator \
+              -u ${{ github.repository_owner }} \
+              -p ${{ github.event.repository.name }} \
+              --token ${{ secrets.GITHUB_TOKEN }} \
+              --since-tag $PREV_TAG \
+              --future-release ${{ github.event.release.tag_name }}
+          fi
 
       - name: Commit and Push Changelog
         run: |
