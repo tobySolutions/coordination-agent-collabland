@@ -38,6 +38,10 @@ const ENV_HINTS = {
     "Enter your Twitter client ID, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
   TWITTER_CLIENT_SECRET:
     "Enter your Twitter client secret, you can get it from Twitter Developer Portal, go to https://developer.twitter.com/en/portal/dashboard to create one",
+  DISCORD_CLIENT_ID:
+    "Enter your Discord client ID, you can get it from Discord Developer Portal, go to https://discord.com/developers/applications to create one",
+  DISCORD_CLIENT_SECRET:
+    "Enter your Discord client secret, you can get it from Discord Developer Portal, go to https://discord.com/developers/applications to create one",
   // Add more hints as needed from .env.example
 };
 
