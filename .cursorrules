@@ -109,6 +109,89 @@ I can guide you through setting up any environment variable. Just paste the vari
   2. Create the contest
   3. Copy the contract address
 
+- `ELIZA_CHARACTER_PATH`: 🤖
+
+  1. Default: "character.json"
+  2. Points to a JSON file containing your AI agent's personality configuration
+  3. Example paths:
+     - character.json (default Ace personality)
+     - vaitalik.json (Vitalik personality)
+     - custom/my-agent.json (your custom personality)
+
+- `TOKEN_DETAILS_PATH`: Points to a JSON/JSONC file containing your token metadata for minting
+
+  1. Default: "token_metadata.example.jsonc"
+  2. Steps:
+  3. Copy the template: `cp token_metadata.example.jsonc token.jsonc`
+  4. Set this env var to point to your file
+  5. Example: `token.jsonc`
+
+- `TWITTER_CLIENT_ID` & `TWITTER_CLIENT_SECRET`: Authentication credentials for Twitter API integration
+
+  1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+  2. Create a new project/app if you haven't already
+  3. Navigate to "Keys and Tokens" section
+  4. Under "OAuth 2.0 Client ID and Client Secret":
+     - Copy "Client ID" → `TWITTER_CLIENT_ID`
+     - Generate "Client Secret" → `TWITTER_CLIENT_SECRET`
+  5. Configure OAuth settings:
+     - Add callback URL: `http://localhost:3001/auth/twitter/callback` (development)
+     - Add your production callback URL if deploying
+  6. Format: Alphanumeric strings
+  7. Example:
+     ```env
+     TWITTER_CLIENT_ID=Abc123XyzClientID
+     TWITTER_CLIENT_SECRET=Xyz789AbcClientSecret
+     ```
+
+- `DISCORD_CLIENT_ID` & `DISCORD_CLIENT_SECRET`: Authentication credentials for Discord API integration
+  1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+  2. Click "New Application" or select existing one
+  3. Navigate to "OAuth2" section in left sidebar
+  4. Under "Client Information":
+     - Copy "Client ID" → `DISCORD_CLIENT_ID`
+     - Copy "Client Secret" → `DISCORD_CLIENT_SECRET`
+  5. Configure OAuth settings:
+     - Add redirect URL: `http://localhost:3001/auth/discord/callback` (development)
+     - Add your production redirect URL if deploying
+     - Select required scopes (typically `identify` and `email`)
+  6. Format: Alphanumeric strings
+  7. Example:
+     ```env
+     DISCORD_CLIENT_ID=123456789012345678
+     DISCORD_CLIENT_SECRET=abcdef123456789xyz
+     ```
+
+
+- `GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`: Authentication credentials for GitHub OAuth integration
+
+  1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+  2. Click "New OAuth App" or select existing one
+  3. Under "OAuth Apps" settings:
+     - Application name: Your app name
+     - Homepage URL: `http://localhost:3001` (development)
+     - Authorization callback URL: `http://localhost:3001/auth/github/callback`
+  4. After creating/selecting the app:
+     - Copy "Client ID" → `GITHUB_CLIENT_ID`
+     - Generate new "Client Secret" → `GITHUB_CLIENT_SECRET`
+  5. Configure OAuth scopes:
+     - Recommended scopes: `read:user`, `user:email`
+  6. Format: Alphanumeric strings
+  7. Example:
+     ```env
+     GITHUB_CLIENT_ID=1234567890abcdef1234
+     GITHUB_CLIENT_SECRET=1234567890abcdef1234567890abcdef12345678
+     ```
+
+**Note**: For production, update the Homepage URL and callback URL to your production domain.
+
+**Security Notes**:
+
+- Never commit these values to version control
+- Use different credentials for development and production
+- Rotate secrets periodically
+- Store production secrets in secure environment variables
+
 ## Development Workflows
 
 I can assist with:

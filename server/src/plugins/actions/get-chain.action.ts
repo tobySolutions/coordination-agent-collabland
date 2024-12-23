@@ -46,7 +46,7 @@ export class GetChainAction extends CollabLandBaseAction {
     const name = "EXTRACT_CHAIN";
     const similes = ["GET_CHAIN", "CHAIN", "GET_CHAIN_ID", "CHAIN_ID"];
     const description =
-      "Extracts the chain from the recent messages and the available chains are ethereum, base and linea.";
+      "Extracts the chain from the recent messages and the available chains are ethereum, base, linea and solana.";
     const handler: Handler = async (
       _runtime,
       message,
@@ -81,7 +81,7 @@ export class GetChainAction extends CollabLandBaseAction {
         console.log("[GetChainAction] extractedChain", extractedChain);
         if (!extractedChain.chain) {
           _callback?.({
-            text: "I couldn't identify a valid chain name. Please specify a supported chain like Ethereum, Base, Linea etc.",
+            text: "I couldn't identify a valid chain name. Please specify a supported chain like Ethereum, Base, Linea or Solana.",
           });
           return false;
         }

@@ -1,4 +1,4 @@
-# 🤖 Collab-Thon AI Bot Template
+# 🤖 AI Agent Starter Kit
 
 A modern full-stack AI-enabled template using Next.js for frontend and Express.js for backend, with Telegram and OpenAI integrations! ✨
 
@@ -69,7 +69,7 @@ pnpm run dev
 │   │   └── www-dev        # Development server launcher
 │   └── tsconfig.json       # TypeScript configuration
 │
-├── ��� scripts/             # Project scripts
+├── 📦 scripts/             # Project scripts
 │   └── dev                 # Concurrent dev servers launcher
 │
 ├── 📝 .env.example         # Root environment variables example for server
@@ -154,6 +154,89 @@ pnpm run dev
   2. Create the contest
   3. Copy the contract address
 
+- `ELIZA_CHARACTER_PATH`: 🤖
+
+  1. Default: "character.json"
+  2. Points to a JSON file containing your AI agent's personality configuration
+  3. Example paths:
+     - character.json (default Ace personality)
+     - vaitalik.json (Vitalik personality)
+     - custom/my-agent.json (your custom personality)
+
+- `TOKEN_DETAILS_PATH`: Points to a JSON/JSONC file containing your token metadata for minting
+
+  1. Default: "token_metadata.example.jsonc"
+  2. Steps:
+  3. Copy the template: `cp token_metadata.example.jsonc token.jsonc`
+  4. Set this env var to point to your file
+  5. Example: `token.jsonc`
+
+- `TWITTER_CLIENT_ID` & `TWITTER_CLIENT_SECRET`: Authentication credentials for Twitter API integration
+
+  1. Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+  2. Create a new project/app if you haven't already
+  3. Navigate to "Keys and Tokens" section
+  4. Under "OAuth 2.0 Client ID and Client Secret":
+     - Copy "Client ID" → `TWITTER_CLIENT_ID`
+     - Generate "Client Secret" → `TWITTER_CLIENT_SECRET`
+  5. Configure OAuth settings:
+     - Add callback URL: `http://localhost:3001/auth/twitter/callback` (development)
+     - Add your production callback URL if deploying
+  6. Format: Alphanumeric strings
+  7. Example:
+     ```env
+     TWITTER_CLIENT_ID=Abc123XyzClientID
+     TWITTER_CLIENT_SECRET=Xyz789AbcClientSecret
+     ```
+
+- `DISCORD_CLIENT_ID` & `DISCORD_CLIENT_SECRET`: Authentication credentials for Discord API integration
+
+  1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+  2. Click "New Application" or select existing one
+  3. Navigate to "OAuth2" section in left sidebar
+  4. Under "Client Information":
+     - Copy "Client ID" → `DISCORD_CLIENT_ID`
+     - Copy "Client Secret" → `DISCORD_CLIENT_SECRET`
+  5. Configure OAuth settings:
+     - Add redirect URL: `http://localhost:3001/auth/discord/callback` (development)
+     - Add your production redirect URL if deploying
+     - Select required scopes (typically `identify` and `email`)
+  6. Format: Alphanumeric strings
+  7. Example:
+     ```env
+     DISCORD_CLIENT_ID=123456789012345678
+     DISCORD_CLIENT_SECRET=abcdef123456789xyz
+     ```
+
+- `GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`: Authentication credentials for GitHub OAuth integration
+
+  1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+  2. Click "New OAuth App" or select existing one
+  3. Under "OAuth Apps" settings:
+     - Application name: Your app name
+     - Homepage URL: `http://localhost:3001` (development)
+     - Authorization callback URL: `http://localhost:3001/auth/github/callback`
+  4. After creating/selecting the app:
+     - Copy "Client ID" → `GITHUB_CLIENT_ID`
+     - Generate new "Client Secret" → `GITHUB_CLIENT_SECRET`
+  5. Configure OAuth scopes:
+     - Recommended scopes: `read:user`, `user:email`
+  6. Format: Alphanumeric strings
+  7. Example:
+     ```env
+     GITHUB_CLIENT_ID=1234567890abcdef1234
+     GITHUB_CLIENT_SECRET=1234567890abcdef1234567890abcdef12345678
+     ```
+
+**Note**: For production, update the Homepage URL and callback URL to your production domain.
+
+**Security Notes**:
+
+- Never commit these values to version control
+- Use different credentials for development and production
+- Rotate secrets periodically
+- Store production secrets in secure environment variables
+
 > 🔒 Note: Keep these tokens secure! Never commit them to version control. The template's `.gitignore` has your back!
 
 ## 🚀 Production Setup
@@ -215,7 +298,7 @@ const ENV_HINTS = {
 ### 🎨 Frontend Components
 
 1. Create component in client/components/
-2. Use Tailwind CSS for styling ��
+2. Use Tailwind CSS for styling
 3. Follow existing patterns for API integration
 
 ### ⚙️ Backend Middleware
@@ -232,26 +315,29 @@ cp token_metadata.example.jsonc token.jsonc
 ```
 
 2. Edit `token.jsonc` with your token details:
+
 ```jsonc
 {
   "name": "YourToken", // Token name
   "symbol": "TOKEN", // Token symbol (2-6 chars)
-  "description": "Your token description", 
+  "description": "Your token description",
   "websiteLink": "https://yoursite.com",
   "twitter": "your_twitter_handle",
-  "discord": "https://discord.gg/your_server", 
+  "discord": "https://discord.gg/your_server",
   "telegram": "your_bot_telegram_username",
   "nsfw": false,
-  "image": "ipfs://your_ipfs_hash" // Upload image to IPFS first
+  "image": "ipfs://your_ipfs_hash", // Upload image to IPFS first
 }
 ```
 
 3. Update `.env` to point to your token file:
+
 ```env
 TOKEN_DETAILS_PATH=token.jsonc
 ```
 
 4. Start your bot and use the `/mint` command in Telegram. The bot will:
+
 - Read your token config
 - Mint on Base Sepolia testnet
 - Return contract details and token page URL

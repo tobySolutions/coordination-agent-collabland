@@ -6,10 +6,11 @@ import { config } from "dotenv";
 config();
 
 export type AnyType = any;
-export const chainMap = {
-  ethereum: 11155111,
-  base: 84532,
-  linea: 59141,
+export const chainMap: Record<string, string> = {
+  ethereum: "11155111",
+  base: "84532",
+  linea: "59141",
+  solana: "sol_dev",
 };
 
 export const getTokenMetadataPath = () => {
