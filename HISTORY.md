@@ -1,5 +1,25 @@
 # 📝 Changelog
 
+## [v1.4.1](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.4.1) (2025-01-03)
+
+[Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.4.0...v1.4.1)
+
+📦 Pull Requests
+
+- \[Lit Protocol\] Add ability to locally develop Lit Actions + Example Slash Command to demo [\#7](https://github.com/collabland/AI-Agent-Starter-Kit/pull/7) ([gitaalekhyapaul](https://github.com/gitaalekhyapaul))
+
+## [v1.4.0](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.4.0) (2024-12-23)
+
+[Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.3.1...v1.4.0)
+
+## [v1.3.1](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.3.1) (2024-12-23)
+
+[Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.3.0...v1.3.1)
+
+## [v1.3.0](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.3.0) (2024-12-23)
+
+[Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.2.0...v1.3.0)
+
 ## [v1.4.0](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.4.0) (2024-12-23)
 
 [Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.3.1...v1.4.0)
