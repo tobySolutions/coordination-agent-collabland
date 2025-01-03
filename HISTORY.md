@@ -1,5 +1,13 @@
 # 📝 Changelog
 
+## [v1.4.3](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.4.3) (2025-01-03)
+
+[Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.4.2...v1.4.3)
+
+📦 Pull Requests
+
+- Send Solana Transaction Autonomously  [\#9](https://github.com/collabland/AI-Agent-Starter-Kit/pull/9) ([gitaalekhyapaul](https://github.com/gitaalekhyapaul))
+
 ## [v1.4.2](https://github.com/collabland/AI-Agent-Starter-Kit/tree/v1.4.2) (2025-01-03)
 
 [Full Changelog](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.4.1...v1.4.2)
