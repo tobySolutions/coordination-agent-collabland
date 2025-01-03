@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.2](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.4.1...v1.4.2) (2025-01-03)
+
 ### [1.4.1](https://github.com/collabland/AI-Agent-Starter-Kit/compare/v1.2.0...v1.4.1) (2025-01-03)
 
 
