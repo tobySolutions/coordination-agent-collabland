@@ -3,7 +3,8 @@ import axios, { AxiosError } from "axios";
 import crypto from "crypto";
 import { NgrokService } from "../services/ngrok.service.js";
 import { CacheService } from "../services/cache.service.js";
-import { getCardHTML } from "../utils.js";
+import { getCardHTML, getCollablandApiUrl } from "../utils.js";
+import { IAccountInfo } from "src/types.js";
 
 const router = Router();
 
@@ -83,7 +84,7 @@ router.post("/init", async (req: Request, res: Response) => {
       response_type: "code", // OAuth 2.0 auth code flow
       client_id: process.env.TWITTER_CLIENT_ID!, // Your app's client ID
       redirect_uri: `${ngrokURL}/auth/twitter/callback`, // Must match registered URL
-      scope: "tweet.read users.read offline.access", // Requested permissions
+      scope: "tweet.read users.read offline.access tweet.write", // Requested permissions
       state: state, // CSRF token
       code_challenge: codeChallenge, // PKCE challenge
       code_challenge_method: "S256",
@@ -225,15 +226,135 @@ router.get("/card/:slug/index.html", (req: Request, res: Response) => {
   //The slug is a string of base64<claimURL>:base64<botUsername>
   const slug = req.params.slug;
   const claimURLBase64 = slug.split(":")[0];
-  const claimURL = Buffer.from(claimURLBase64, "base64").toString("ascii");
+  let claimURL = Buffer.from(claimURLBase64, "base64").toString("ascii");
+  console.log("Claim URL:", claimURL);
+  // replace the domain name of the claimURL with the current NEXT_PUBLIC_HOSTNAME
+  const _claimURL = new URL(claimURL);
+  _claimURL.hostname = process.env.NEXT_PUBLIC_HOSTNAME!;
+  claimURL = _claimURL.toString();
+  console.log("Updated Claim URL:", claimURL);
   const botUsernameBase64 = slug.split(":")[1];
   const botUsername = Buffer.from(botUsernameBase64, "base64").toString(
     "ascii"
   );
-  console.log("Claim URL:", claimURL);
   console.log("Bot Username:", botUsername);
   res.setHeader("Content-Type", "text/html");
   res.send(getCardHTML(botUsername, claimURL));
+});
+
+router.get("/getAccountAddress", async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.query;
+    console.log("Getting account address for Twitter User ID:", userId);
+    if (!userId) {
+      throw new Error("No user id provided");
+    }
+    const v2ApiUrl = getCollablandApiUrl().replace("v1", "v2");
+    // This AccountKit API returns counterfactually calculated smart account addresses for a GitHub/Twitter user
+    const { data } = await axios.post<IAccountInfo>(
+      `${v2ApiUrl}/evm/calculateAccountAddress`,
+      {
+        platform: "twitter",
+        userId: userId,
+      },
+      {
+        headers: {
+          "X-API-KEY": process.env.COLLABLAND_API_KEY!,
+        },
+      }
+    );
+    console.log(
+      "[Twitter Success] Account address for Twitter User ID:",
+      userId,
+      data
+    );
+    // We need base smart account addresses for Wow.XYZ
+    const accountAddress = data.evm.find(
+      (account) => account.chainId === 8453
+    )?.address;
+    res.json({
+      success: true,
+      account: accountAddress,
+    });
+  } catch (error) {
+    console.error("[Twitter Success] Error:", error);
+    if (error instanceof AxiosError) {
+      console.error("[Twitter Success] Response:", error.response?.data);
+    }
+    res.status(400).json({
+      success: false,
+      error: "Failed to fetch profile information",
+    });
+  }
+});
+
+router.get(
+  "/sendAirdrop/:tokenId/:recipient",
+  async (req: Request, res: Response) => {
+    try {
+      const { tokenId, recipient } = req.params;
+      console.log(
+        `[Twitter Success] Sending airdrop for token ${tokenId} to ${recipient}`
+      );
+
+      // Mock a delay to simulate blockchain transaction
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Generate a mock transaction hash (40 hex characters)
+      const mockTxHash =
+        "0x" +
+        Array.from({ length: 64 }, () =>
+          Math.floor(Math.random() * 16).toString(16)
+        ).join("");
+
+      console.log("[Twitter Success] Airdrop sent with tx hash:", mockTxHash);
+
+      res.json({
+        success: true,
+        txHash: mockTxHash,
+      });
+    } catch (error) {
+      console.error("[Twitter Success] Error:", error);
+      if (error instanceof AxiosError) {
+        console.error("[Twitter Success] Response:", error.response?.data);
+      }
+      res.status(400).json({
+        success: false,
+        error: "Failed to send airdrop",
+      });
+    }
+  }
+);
+
+router.post("/tweet", async (req: Request, res: Response) => {
+  try {
+    const { message } = req.body;
+    console.log("[Twitter Success] Sending tweet:", message);
+
+    // Mock API call to Twitter
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Generate a mock tweet ID and construct URL
+    const mockTweetId = Date.now().toString();
+    const tweetUrl = `https://twitter.com/i/web/status/${mockTweetId}`;
+
+    console.log("[Twitter Success] Tweet sent successfully:", tweetUrl);
+
+    res.json({
+      success: true,
+      tweetId: mockTweetId,
+      tweetUrl,
+    });
+  } catch (error) {
+    console.error("[Twitter Success] Error:", error);
+    if (error instanceof AxiosError) {
+      console.error("[Twitter Success] Response:", error.response?.data);
+    }
+    res.status(400).json({
+      success: false,
+      error: "Failed to send tweet",
+    });
+  }
 });
 
 export default router;
