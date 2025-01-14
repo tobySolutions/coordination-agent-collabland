@@ -2,6 +2,10 @@
 
 A modern full-stack AI-enabled template using Next.js for frontend and Express.js for backend, with Telegram and OpenAI integrations! ✨
 
+> [!IMPORTANT]
+> The AI Agent Starter Kit is powered by the Collab.Land AccountKit APIs
+> More information here: https://accountkit-docs-qa.collab.land/
+
 ## 🎯 Cursor IDE Integration
 
 This template is specially crafted for the Cursor IDE, offering:
