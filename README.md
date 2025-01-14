@@ -4,6 +4,7 @@ A modern full-stack AI-enabled template using Next.js for frontend and Express.j
 
 > [!IMPORTANT]
 > The AI Agent Starter Kit is powered by the Collab.Land AccountKit APIs
+> 
 > More information here: https://accountkit-docs-qa.collab.land/
 
 ## 🎯 Cursor IDE Integration
