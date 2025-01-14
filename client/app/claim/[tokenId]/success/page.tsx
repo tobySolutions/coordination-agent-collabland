@@ -96,9 +96,15 @@ export default function SuccessPage() {
     if (!smartAccount) return;
     setIsSending(true);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10 * 60 * 1000);
       const response = await fetch(
-        `/api/auth/twitter/sendAirdrop/${tokenId}/${smartAccount}`
+        `/api/auth/twitter/sendAirdrop/${tokenId}/${smartAccount}`,
+        {
+          signal: controller.signal,
+        }
       );
+      clearTimeout(timeoutId);
       if (!response.ok) throw new Error("Failed to send airdrop");
       const { txHash } = await response.json();
       setTxHash(txHash);
@@ -114,14 +120,17 @@ export default function SuccessPage() {
     setIsTweeting(true);
     try {
       const token = searchParams.get("token");
-      const message = `🎉 Just claimed my @WowXYZ airdrop!\n\nCheck out my transaction on Base:\nhttps://basescan.org/tx/${txHash}\n\nClaim yours now! 🚀`;
+      if (!token) {
+        throw new Error("No token provided");
+      }
 
-      const response = await fetch("/api/auth/twitter/tweet", {
+      const response = await fetch("/api/auth/twitter/tweetCard", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-auth-token": token ?? "",
         },
-        body: JSON.stringify({ token, message }),
+        body: JSON.stringify({ txHash, tokenId }),
       });
 
       if (!response.ok) throw new Error("Failed to send tweet");
@@ -263,17 +272,20 @@ export default function SuccessPage() {
                 </a>
               </div>
               {!txHash ? (
-                <Button
-                  onClick={handleSendAirdrop}
-                  disabled={isSending}
-                  className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400"
-                >
-                  {isSending ? "Sending..." : "Send to Address"}
-                </Button>
+                <>
+                  {error && <div className="text-red-500">{error}</div>}
+                  <Button
+                    onClick={handleSendAirdrop}
+                    disabled={isSending}
+                    className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400"
+                  >
+                    {isSending ? "Sending Airdrop..." : "Send to Address"}
+                  </Button>
+                </>
               ) : (
                 <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4">
                   <div className="flex flex-col space-y-2 text-center">
-                    <div className="text-xl">🎊 Transaction Successful! 🎊</div>
+                    <div className="text-xl">🎊 Airdrop Successful! 🎊</div>
                     <div className="text-sm text-gray-500">
                       View on BaseScan:{" "}
                       <a

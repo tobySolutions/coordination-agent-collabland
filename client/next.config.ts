@@ -7,11 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "nextjs.org",
-      },
-      {
-        protocol: "https",
-        hostname: "pbs.twimg.com",
+        hostname: "**",
       },
     ],
   },
@@ -22,6 +18,9 @@ const nextConfig: NextConfig = {
         destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
       },
     ];
+  },
+  experimental: {
+    proxyTimeout: 10 * 60 * 1000,
   },
 };
 
