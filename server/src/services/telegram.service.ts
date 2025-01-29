@@ -16,6 +16,19 @@ import { keccak256, getBytes, toUtf8Bytes } from "ethers";
 import { TwitterService } from "./twitter.service.js";
 import { NgrokService } from "./ngrok.service.js";
 
+// hack to avoid 400 errors sending params back to telegram. not even close to perfect
+const htmlEscape = (_key: AnyType, val: AnyType) => {
+  if (typeof val === "string") {
+    return val
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;"); // single quote
+  }
+  return val;
+};
+
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 export class TelegramService extends BaseService {
   private static instance: TelegramService;
@@ -207,31 +220,76 @@ You can view the token page below (it takes a few minutes to be visible)`,
           const actionHash = actionHashes[action];
           console.log("actionHash:", actionHash);
           if (!actionHash) {
-            ctx.reply("Action not found");
+            ctx.reply(`Action not found: ${action}`);
             return;
           }
-          // ! NOTE: The message to sign can be any normal message, or raw TX
-          // ! In order to sign EIP-191 message, you need to encode it properly, Lit protocol does raw signatures
-          const messageToSign =
-            ctx.from?.username ?? ctx.from?.first_name ?? "";
-          const messageToSignDigest = keccak256(toUtf8Bytes(messageToSign));
           // ! NOTE: You can send any jsParams you want here, it depends on your Lit action code
-          const jsParams = {
-            helloName: messageToSign,
-            toSign: Array.from(getBytes(messageToSignDigest)),
-          };
+          let jsParams;
           // ! NOTE: You can change the chainId to any chain you want to execute the action on
           const chainId = 8453;
+          switch (action) {
+            case "hello-action": {
+              // ! NOTE: The message to sign can be any normal message, or raw TX
+              // ! In order to sign EIP-191 message, you need to encode it properly, Lit protocol does raw signatures
+              const messageToSign =
+                ctx.from?.username ?? ctx.from?.first_name ?? "";
+              const messageToSignDigest = keccak256(toUtf8Bytes(messageToSign));
+              jsParams = {
+                helloName: messageToSign,
+                toSign: Array.from(getBytes(messageToSignDigest)),
+              };
+              break;
+            }
+            case "decrypt-action": {
+              const toEncrypt = `encrypt-decrypt-test-${new Date().toUTCString()}`;
+              ctx.reply(`Invoking encrypt action with ${toEncrypt}`);
+              const { data } = await client.post(
+                `/telegrambot/executeLitActionUsingPKP?chainId=${chainId}`,
+                {
+                  actionIpfs: actionHashes["encrypt-action"].IpfsHash,
+                  actionJsParams: {
+                    toEncrypt,
+                  },
+                }
+              );
+              console.log("encrypt response ", data);
+              const { ciphertext, dataToEncryptHash } = JSON.parse(
+                data.response.response
+              );
+              jsParams = {
+                ciphertext,
+                dataToEncryptHash,
+                chain: "base",
+              };
+              break;
+            }
+            case "encrypt-action": {
+              const message =
+                ctx.from?.username ?? ctx.from?.first_name ?? "test data";
+              jsParams = {
+                toEncrypt: `${message}-${new Date().toUTCString()}`,
+              };
+              break;
+            }
+            default: {
+              // they typed something random or a dev forgot to update this list
+              ctx.reply(`Action not handled: ${action}`);
+              return;
+            }
+          }
           await ctx.reply(
             "Executing action..." +
               `\n\nAction Hash: <code>${actionHash.IpfsHash}</code>\n\nParams:\n<pre lang="json"><code>${JSON.stringify(
                 jsParams,
-                null,
+                htmlEscape,
                 2
               )}</code></pre>`,
             {
               parse_mode: "HTML",
             }
+          );
+          console.log(
+            `[telegram.service] executing lit action with hash ${actionHash.IpfsHash} on chain ${chainId}`
           );
           const { data } = await client.post(
             `/telegrambot/executeLitActionUsingPKP?chainId=${chainId}`,
@@ -240,8 +298,9 @@ You can view the token page below (it takes a few minutes to be visible)`,
               actionJsParams: jsParams,
             }
           );
-          console.log("Action executed on Lit Nodes 🔥");
-          console.log("Action:", actionHash.IpfsHash);
+          console.log(
+            `Action with hash ${actionHash.IpfsHash} executed on Lit Nodes 🔥`
+          );
           console.log("Result:", data);
           ctx.reply(
             `Action executed on Lit Nodes 🔥\n\n` +
