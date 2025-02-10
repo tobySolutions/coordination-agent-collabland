@@ -2,10 +2,10 @@ import {
   Payments,
   EnvironmentName,
   FIRST_STEP_NAME,
-  //   generateStepId,
   AgentExecutionStatus,
   Step,
   generateStepId,
+  Task,
 } from "@nevermined-io/payments";
 import { BaseService } from "./base.service.js";
 import { TelegramService } from "./telegram.service.js";
@@ -16,6 +16,9 @@ import { AnyType } from "src/utils.js";
 
 //FIXME: Remove once Nevermined SDK is updated
 interface NeverminedStep extends Step {
+  did: string;
+}
+interface NeverminedTask extends Omit<Task, "steps" | "name"> {
   did: string;
 }
 
@@ -50,6 +53,8 @@ export class NeverminedService extends BaseService {
     console.log("[NeverminedService] Payment plan DID: ", this.paymentPlanDID);
     this.agentDID = await this.getAgentDID();
     console.log("[NeverminedService] Agent DID: ", this.agentDID);
+    const planBalance = await this.getPlanCreditBalance();
+    console.log(`[NeverminedService] Plan balance: ${planBalance}`);
     await this.client.query.subscribe(this.processQuery(this.client), {
       getPendingEventsOnSubscribe: false,
       joinAccountRoom: false,
@@ -351,5 +356,67 @@ export class NeverminedService extends BaseService {
         }
       }
     };
+  }
+  public async getPlanCreditBalance(
+    //FIXME: Remove after demo, should be dynamic
+    planDID = "did:nv:95933c24a7f3c181b62b2ee91d7b7e6ec0fce5430a0fd19f4cf5c4dc864efb6d"
+  ): Promise<bigint> {
+    if (!this.client) {
+      throw new Error("NeverminedService not started");
+    }
+    const balance = await this.client.getPlanBalance(planDID);
+    console.log(`Plan: ${planDID}\nBalance: ${JSON.stringify(balance)}`);
+    if (!balance.isSubscriptor || balance.balance === BigInt(0)) {
+      console.log("Not subscribed to plan, or plan exhausted: ", planDID);
+      console.log("Subscribing...");
+      const agreement = await this.client.orderPlan(planDID);
+      console.log("Subscribed, Agreement: ", agreement);
+      const balance = await this.client.getPlanBalance(planDID);
+      console.log(`Plan: ${planDID}\nBalance:, ${JSON.stringify(balance)}`);
+      return balance.balance;
+    }
+    return balance.balance;
+  }
+
+  public async submitTask(
+    //FIXME: Remove after demo, should be dynamic
+    agentDID = "did:nv:ed26319e8551d5578b09563c3261df7cd4e3b1f4130434d04478a036c29e4403",
+    planDID = "did:nv:95933c24a7f3c181b62b2ee91d7b7e6ec0fce5430a0fd19f4cf5c4dc864efb6d",
+    query = `hello-demo-agent-${Date.now()}`,
+    callback?: (data: string) => Promise<void>
+  ): Promise<void> {
+    if (!this.client) {
+      throw new Error("NeverminedService not started");
+    }
+    console.log(
+      `[NeverminedService] Submitting task: agentDID: ${agentDID}, planDID: ${planDID}, query: ${query}`
+    );
+    const balance = await this.getPlanCreditBalance(planDID);
+    console.log(`Plan: ${planDID}\nBalance: ${JSON.stringify(balance)}`);
+    if (balance <= BigInt(0)) {
+      throw new Error("Insufficient balance");
+    }
+    const accessConfig =
+      await this.client.query.getServiceAccessConfig(agentDID);
+    console.log(
+      `[NeverminedService] Access config: ${JSON.stringify(accessConfig)}`
+    );
+    const taskCallback =
+      callback ??
+      (async (data: string) => {
+        console.log(`Received data:`);
+        const parsedData = JSON.parse(data) as NeverminedTask;
+        console.dir(parsedData, { depth: null });
+      });
+    const { data } = await this.client.query.createTask(
+      agentDID,
+      {
+        query,
+      },
+      accessConfig,
+      taskCallback
+    );
+    console.log(`Task sent to agent: ${JSON.stringify(data)}`);
+    return data;
   }
 }

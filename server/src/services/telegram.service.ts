@@ -15,6 +15,7 @@ import path, { resolve } from "path";
 import { keccak256, getBytes, toUtf8Bytes } from "ethers";
 import { TwitterService } from "./twitter.service.js";
 import { NgrokService } from "./ngrok.service.js";
+import { NeverminedService } from "./nevermined.service.js";
 
 // hack to avoid 400 errors sending params back to telegram. not even close to perfect
 const htmlEscape = (_key: AnyType, val: AnyType) => {
@@ -37,6 +38,7 @@ export class TelegramService extends BaseService {
   private elizaService: ElizaService;
   private nGrokService: NgrokService;
   private twitterService?: TwitterService;
+  private neverminedService?: NeverminedService;
 
   private constructor(webhookUrl?: string) {
     super();
@@ -48,6 +50,7 @@ export class TelegramService extends BaseService {
     }
     this.bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
     this.elizaService = ElizaService.getInstance(this.bot);
+    this.neverminedService = NeverminedService.getInstance();
   }
 
   public static getInstance(webhookUrl?: string): TelegramService {
@@ -90,9 +93,63 @@ export class TelegramService extends BaseService {
         { command: "mint", description: "Mint a token on Wow.xyz" },
         { command: "eliza", description: "Talk to the AI agent" },
         { command: "lit", description: "Execute a Lit action" },
+        { command: "nevermined", description: "Execute a Nevermined action" },
+        {
+          command: "nvm_balance",
+          description: "Get the plan balance on Nevermined",
+        },
       ]);
       // all command handlers can be registered here
       this.bot.command("start", (ctx) => ctx.reply("Hello!"));
+      this.bot.command("nvm_balance", async (ctx) => {
+        const chatId = ctx.chat?.id;
+        console.log("Chat ID:", chatId);
+        const balance = await this.neverminedService?.getPlanCreditBalance();
+        await ctx.reply("Plan balance: " + balance);
+      });
+      this.bot.command("nevermined", async (ctx) => {
+        const query = ctx.message?.text.split(" ")[1] ?? "";
+        const chatId = ctx.chat?.id;
+        console.log("Query:", query);
+        console.log("Chat ID:", chatId);
+        const agentDID =
+          "did:nv:ed26319e8551d5578b09563c3261df7cd4e3b1f4130434d04478a036c29e4403";
+        const planDID =
+          "did:nv:95933c24a7f3c181b62b2ee91d7b7e6ec0fce5430a0fd19f4cf5c4dc864efb6d";
+        await ctx.reply("Submitting Nevermined task to agent DID: " + agentDID);
+        await ctx.reply("Plan DID: " + planDID);
+        const initBalance =
+          await this.neverminedService?.getPlanCreditBalance(planDID);
+        await ctx.reply("Initial plan credit balance: " + initBalance);
+        const task = await this.neverminedService?.submitTask(
+          agentDID,
+          planDID,
+          query.length > 0 ? `query::${query}::chatId:${chatId}` : undefined,
+          async (data) => {
+            const step = JSON.parse(data);
+            await this.bot.api.sendMessage(
+              chatId,
+              "Data received:\n```json\n" +
+                JSON.stringify(step, null, 2) +
+                "\n```",
+              {
+                parse_mode: "MarkdownV2",
+              }
+            );
+          }
+        );
+        await ctx.reply(
+          "Task submitted:\n```json\n" +
+            JSON.stringify(task, null, 2) +
+            "\n```",
+          {
+            parse_mode: "MarkdownV2",
+          }
+        );
+        const finalBalance =
+          await this.neverminedService?.getPlanCreditBalance(planDID);
+        await ctx.reply("Final plan credit balance: " + finalBalance);
+      });
       this.bot.catch(async (error) => {
         console.error("Telegram bot error:", error);
       });
