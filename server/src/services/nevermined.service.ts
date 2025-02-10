@@ -180,6 +180,10 @@ export class NeverminedService extends BaseService {
     return async (data: AnyType) => {
       const eventData = JSON.parse(data);
       console.log("[NeverminedService] Event data: ", eventData);
+      await this.telegramService?.bot.api.sendMessage(
+        "-4729581369",
+        `Event data: ${JSON.stringify(eventData)}`
+      );
       const step = (await payments.query.getStep(
         eventData.step_id
       )) as NeverminedStep;
@@ -196,6 +200,7 @@ export class NeverminedService extends BaseService {
             task_id: step.task_id,
             message: `Step received ${step.name}, creating the additional steps...`,
           });
+          console.log("[NeverminedService] Step received ", step);
           const fetchDataStepId = generateStepId();
           const encryptDataStepId = generateStepId();
 
@@ -215,7 +220,7 @@ export class NeverminedService extends BaseService {
               is_last: true,
             },
           ];
-
+          console.log("[NeverminedService] Steps to be created: ", steps);
           const createResult = await payments.query.createSteps(
             step.did,
             step.task_id,
@@ -230,6 +235,10 @@ export class NeverminedService extends BaseService {
                 ? "Steps created successfully."
                 : `Error creating steps: ${JSON.stringify(createResult.data)}`,
           });
+          await this.telegramService?.bot.api.sendMessage(
+            "-4729581369",
+            `Steps created successfully.`
+          );
 
           await payments.query.updateStep(step.did, {
             ...step,
@@ -246,7 +255,11 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Step received ${step.name}, fetching data...`,
           });
-          const mockData = `step-1-mock-data-${Date.now()}`;
+          await this.telegramService?.bot.api.sendMessage(
+            "-4729581369",
+            `Step received ${step.name}, fetching data...`
+          );
+          const mockData = step.input_query ?? `step-1-mock-data-${Date.now()}`;
           await payments.query.logTask({
             level: "info",
             task_id: step.task_id,
@@ -254,6 +267,12 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Data fetched: ${mockData}`,
           });
+          console.log(
+            "[NeverminedService] Data fetched: ",
+            mockData,
+            step.task_id,
+            step.step_id
+          );
           await payments.query.updateStep(step.did, {
             ...step,
             step_status: AgentExecutionStatus.Completed,
@@ -266,6 +285,10 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Step 1 completed, data fetched`,
           });
+          await this.telegramService?.bot.api.sendMessage(
+            "-4729581369",
+            `Step 1 completed, data fetched`
+          );
           return;
         }
         case "encryptData": {
@@ -276,6 +299,11 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Step received ${step.name}, encrypting data...`,
           });
+          console.log(
+            "[NeverminedService] Step received encrypting data...",
+            step.task_id,
+            step.step_id
+          );
           const data = Buffer.from(step.input_query, "utf-8").toString("hex");
           await payments.query.logTask({
             level: "info",
@@ -284,6 +312,12 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Data encrypted: ${data}`,
           });
+          console.log(
+            "[NeverminedService] Data encrypted: ",
+            data,
+            step.task_id,
+            step.step_id
+          );
           await payments.query.updateStep(step.did, {
             ...step,
             step_status: AgentExecutionStatus.Completed,
@@ -297,6 +331,10 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.Completed,
             message: `Step 2, data fetched and encrypted`,
           });
+          await this.telegramService?.bot.api.sendMessage(
+            "-4729581369",
+            `Step 2, data fetched and encrypted`
+          );
           return;
         }
         default: {
@@ -305,6 +343,10 @@ export class NeverminedService extends BaseService {
             task_id: step.task_id,
             message: `Unknown step ${step.name}, Skipping...`,
           });
+          await this.telegramService?.bot.api.sendMessage(
+            "-4729581369",
+            `Unknown step ${step.name}, Skipping...`
+          );
           return;
         }
       }

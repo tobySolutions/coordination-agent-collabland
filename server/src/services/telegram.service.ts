@@ -32,7 +32,7 @@ const htmlEscape = (_key: AnyType, val: AnyType) => {
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 export class TelegramService extends BaseService {
   private static instance: TelegramService;
-  private bot: Bot;
+  public bot: Bot;
   private webhookUrl: string;
   private elizaService: ElizaService;
   private nGrokService: NgrokService;
