@@ -95,6 +95,16 @@ export class TelegramService extends BaseService {
         { command: "lit", description: "Execute a Lit action" },
         { command: "nevermined", description: "Execute a Nevermined action" },
         {
+          command: "purchase_plan",
+          description:
+            "Purchase a plan on Nevermined, usage /command <plan_did>",
+        },
+        {
+          command: "submit_task",
+          description:
+            "Submit a task to an agent's plan on Nevermined, usage /command <agent_did> <plan_did>",
+        },
+        {
           command: "nvm_balance",
           description: "Get the plan balance on Nevermined",
         },
@@ -107,6 +117,31 @@ export class TelegramService extends BaseService {
         const balance = await this.neverminedService?.getPlanCreditBalance();
         await ctx.reply("Plan balance: " + balance);
       });
+
+      this.bot.command("purchase_plan", async (ctx) => {
+        const planDID = ctx.message?.text.split(" ")[1] ?? "";
+        await ctx.reply("Purchasing plan: " + planDID);
+        const balance = await this.neverminedService?.purchasePlan(planDID);
+        await ctx.reply("Plan purchased: " + balance + " credits remaining");
+      });
+
+      this.bot.command("submit_task", async (ctx) => {
+        const agentDID = ctx.message?.text.split(" ")[1] ?? "";
+        const planDID = ctx.message?.text.split(" ")[2] ?? "";
+        if (!agentDID || !planDID) {
+          await ctx.reply("Usage: /submit_task <agent_did> <plan_did>");
+          return;
+        }
+        await ctx.reply(
+          "Submitting task to agent: " + agentDID + " on plan: " + planDID
+        );
+        const balance = await this.neverminedService?.submitTaskDynamically(
+          agentDID,
+          planDID
+        );
+        await ctx.reply("Task submitted: " + balance + " credits remaining");
+      });
+
       this.bot.command("nevermined", async (ctx) => {
         const query = ctx.message?.text.split(" ")[1] ?? "";
         const chatId = ctx.chat?.id;
@@ -121,31 +156,32 @@ export class TelegramService extends BaseService {
         const initBalance =
           await this.neverminedService?.getPlanCreditBalance(planDID);
         await ctx.reply("Initial plan credit balance: " + initBalance);
-        const task = await this.neverminedService?.submitTask(
-          agentDID,
-          planDID,
-          query.length > 0 ? `query::${query}::chatId:${chatId}` : undefined,
-          async (data) => {
-            const step = JSON.parse(data);
-            await this.bot.api.sendMessage(
-              chatId,
-              "Data received:\n```json\n" +
-                JSON.stringify(step, null, 2) +
-                "\n```",
-              {
-                parse_mode: "MarkdownV2",
-              }
-            );
-          }
-        );
-        await ctx.reply(
-          "Task submitted:\n```json\n" +
-            JSON.stringify(task, null, 2) +
-            "\n```",
-          {
-            parse_mode: "MarkdownV2",
-          }
-        );
+
+        // const task = await this.neverminedService?.submitTask(
+        //   agentDID,
+        //   planDID,
+        //   query.length > 0 ? `query::${query}::chatId:${chatId}` : undefined,
+        //   async (data) => {
+        //     const step = JSON.parse(data);
+        //     await this.bot.api.sendMessage(
+        //       chatId,
+        //       "Data received:\n```json\n" +
+        //         JSON.stringify(step, null, 2) +
+        //         "\n```",
+        //       {
+        //         parse_mode: "MarkdownV2",
+        //       }
+        //     );
+        //   }
+        // );
+        // await ctx.reply(
+        //   "Task submitted:\n```json\n" +
+        //     JSON.stringify(task, null, 2) +
+        //     "\n```",
+        //   {
+        //     parse_mode: "MarkdownV2",
+        //   }
+        // );
         const finalBalance =
           await this.neverminedService?.getPlanCreditBalance(planDID);
         await ctx.reply("Final plan credit balance: " + finalBalance);

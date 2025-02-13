@@ -51,8 +51,10 @@ export class NeverminedService extends BaseService {
     );
     this.paymentPlanDID = await this.getPaymentPlanDID();
     console.log("[NeverminedService] Payment plan DID: ", this.paymentPlanDID);
+
     this.agentDID = await this.getAgentDID();
     console.log("[NeverminedService] Agent DID: ", this.agentDID);
+
     const planBalance = await this.getPlanCreditBalance();
     console.log(`[NeverminedService] Plan balance: ${planBalance}`);
     await this.client.query.subscribe(this.processQuery(this.client), {
@@ -83,6 +85,34 @@ export class NeverminedService extends BaseService {
     return this.client;
   }
 
+  /**
+   * Gets or creates a payment plan DID (Decentralized Identifier) for the Nevermined service.
+   *
+   * @returns Promise<string> The payment plan DID
+   * @throws Error if Nevermined service is not started
+   *
+   * @description
+   * This method handles the payment plan DID in the following way:
+   * 1. First checks if a DID exists in environment variables
+   * 2. If not, creates a new payment plan with the following parameters:
+   *    - Name: "PaymentPlan:::[bot_username]"
+   *    - Description: Custom description with bot username
+   *    - Price: 1 USDC (using 6 decimals)
+   *    - Token: USDC on Arbitrum Sepolia testnet
+   *    - Credits: 100 per plan
+   * 3. Saves the new DID to .env file for persistence
+   *
+   * The payment plan is required for the Nevermined agent to process requests
+   * and handle payments from users.
+   *
+   * TODO: Make payment plan details dynamic so agents can set their own terms in the future
+   *
+   * @example
+   * ```typescript
+   * const neverminedService = NeverminedService.getInstance();
+   * const paymentPlanDID = await neverminedService.getPaymentPlanDID();
+   * ```
+   */
   public async getPaymentPlanDID(): Promise<string> {
     if (!this.client) {
       throw new Error("NeverminedService not started");
@@ -134,6 +164,32 @@ export class NeverminedService extends BaseService {
     return this.paymentPlanDID!;
   }
 
+  /**
+   * Gets or creates an agent DID (Decentralized Identifier) for the Nevermined service.
+   *
+   * @returns Promise<string> The agent DID
+   * @throws Error if Nevermined service is not started
+   *
+   * @description
+   * This method handles the agent DID in the following way:
+   * 1. First checks if a DID exists in environment variables
+   * 2. If not, creates a new agent with the following parameters:
+   *    - Name: "Agent:::[bot_username]"
+   *    - Description: Custom description with bot username
+   *    - Plan DID: Uses the payment plan DID from getPaymentPlanDID()
+   *    - Service charge type: "dynamic"
+   *    - Uses AI Hub: true
+   * 3. Saves the new DID to .env file for persistence
+   *
+   * The agent DID is required for the Nevermined service to process requests
+   * and handle interactions with users.
+   *
+   * @example
+   * ```typescript
+   * const neverminedService = NeverminedService.getInstance();
+   * const agentDID = await neverminedService.getAgentDID();
+   * ```
+   */
   public async getAgentDID(): Promise<string> {
     if (!this.client) {
       throw new Error("NeverminedService not started");
@@ -146,6 +202,7 @@ export class NeverminedService extends BaseService {
     console.log("Creating agent...");
     try {
       const botInfo = await this.telegramService?.getBotInfo();
+
       const agent = await this.client.createAgent({
         name: `Agent:::${botInfo?.username ?? "<unknown>"}`,
         description: `Agent ${botInfo?.username ?? "<unknown>"}`,
@@ -153,6 +210,7 @@ export class NeverminedService extends BaseService {
         serviceChargeType: "dynamic",
         usesAIHub: true,
       });
+
       console.log("[NeverminedService] Agent created:", agent);
       this.agentDID = agent.did;
     } catch (e) {
@@ -357,6 +415,7 @@ export class NeverminedService extends BaseService {
       }
     };
   }
+
   public async getPlanCreditBalance(
     //FIXME: Remove after demo, should be dynamic
     planDID = "did:nv:95933c24a7f3c181b62b2ee91d7b7e6ec0fce5430a0fd19f4cf5c4dc864efb6d"
@@ -378,10 +437,75 @@ export class NeverminedService extends BaseService {
     return balance.balance;
   }
 
+  public async purchasePlan(
+    //FIXME: Remove after demo, should be dynamic
+    planDID: string
+  ): Promise<bigint> {
+    if (!this.client) {
+      throw new Error("NeverminedService not started");
+    }
+    const balance = await this.client.getPlanBalance(planDID);
+    console.log(`Plan: ${planDID}\nBalance: ${JSON.stringify(balance)}`);
+    if (!balance.isSubscriptor || balance.balance === BigInt(0)) {
+      console.log("Not subscribed to plan, or plan exhausted: ", planDID);
+      console.log("Subscribing...");
+      const agreement = await this.client.orderPlan(planDID);
+      console.log("Subscribed, Agreement: ", agreement);
+      const balance = await this.client.getPlanBalance(planDID);
+      console.log(`Plan: ${planDID}\nBalance:, ${JSON.stringify(balance)}`);
+      return balance.balance;
+    } else {
+      console.log("Already subscribed to plan: ", planDID);
+      return balance.balance;
+    }
+  }
+
   public async submitTask(
     //FIXME: Remove after demo, should be dynamic
     agentDID = "did:nv:ed26319e8551d5578b09563c3261df7cd4e3b1f4130434d04478a036c29e4403",
     planDID = "did:nv:95933c24a7f3c181b62b2ee91d7b7e6ec0fce5430a0fd19f4cf5c4dc864efb6d",
+    query = `hello-demo-agent-${Date.now()}`,
+    callback?: (data: string) => Promise<void>
+  ): Promise<void> {
+    if (!this.client) {
+      throw new Error("NeverminedService not started");
+    }
+    console.log(
+      `[NeverminedService] Submitting task: agentDID: ${agentDID}, planDID: ${planDID}, query: ${query}`
+    );
+    const balance = await this.getPlanCreditBalance(planDID);
+    console.log(`Plan: ${planDID}\nBalance: ${JSON.stringify(balance)}`);
+    if (balance <= BigInt(0)) {
+      throw new Error("Insufficient balance");
+    }
+    const accessConfig =
+      await this.client.query.getServiceAccessConfig(agentDID);
+    console.log(
+      `[NeverminedService] Access config: ${JSON.stringify(accessConfig)}`
+    );
+    const taskCallback =
+      callback ??
+      (async (data: string) => {
+        console.log(`Received data:`);
+        const parsedData = JSON.parse(data) as NeverminedTask;
+        console.dir(parsedData, { depth: null });
+      });
+    const { data } = await this.client.query.createTask(
+      agentDID,
+      {
+        query,
+      },
+      accessConfig,
+      taskCallback
+    );
+    console.log(`Task sent to agent: ${JSON.stringify(data)}`);
+    return data;
+  }
+
+  public async submitTaskDynamically(
+    //FIXME: Remove after demo, should be dynamic
+    agentDID: string,
+    planDID: string,
     query = `hello-demo-agent-${Date.now()}`,
     callback?: (data: string) => Promise<void>
   ): Promise<void> {
