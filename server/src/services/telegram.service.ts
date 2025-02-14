@@ -200,7 +200,6 @@ export class TelegramService extends BaseService {
             planDID,
             query,
             undefined,
-            // @ts-expect-error Nevermined service callback type
             async (result: unknown) => {
               let formattedResult = result;
               // Try to parse and format if result is JSON string

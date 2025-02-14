@@ -368,37 +368,37 @@ export class NeverminedService extends BaseService {
             step.task_id,
             step.step_id
           );
-          const data = Buffer.from(step.input_query, "utf-8").toString("hex");
+
+          const encryptedData = this.encryptData(step.input_query);
+
           await payments.query.logTask({
             level: "info",
             task_id: step.task_id,
             step_id: step.step_id,
             task_status: AgentExecutionStatus.In_Progress,
-            message: `Data encrypted: ${data}`,
+            message: `Data encrypted: ${encryptedData}`,
           });
           console.log(
             "[NeverminedService] Data encrypted: ",
-            data,
+            encryptedData,
             step.task_id,
             step.step_id
           );
+
           await payments.query.updateStep(step.did, {
             ...step,
             step_status: AgentExecutionStatus.Completed,
-            output: data,
+            output: encryptedData,
             cost: 2,
             is_last: true,
           });
+
           await payments.query.logTask({
             level: "info",
             task_id: step.task_id,
             task_status: AgentExecutionStatus.Completed,
             message: `Step 2, data fetched and encrypted`,
           });
-          // await this.telegramService?.bot.api.sendMessage(
-          //   "-4729581369",
-          //   `Step 2, data fetched and encrypted`
-          // );
           return;
         }
         default: {
@@ -577,5 +577,25 @@ export class NeverminedService extends BaseService {
     );
     console.log(`Task sent to agent: ${JSON.stringify(data)}`);
     return data;
+  }
+
+  /**
+   * Encrypts data using a simple hex encoding
+   * @param data - The data to encrypt
+   * @returns The encrypted data in hex format
+   */
+  private encryptData(data: string): string {
+    return Buffer.from(data, "utf-8").toString("hex");
+  }
+
+  /**
+   * Decrypts hex encoded data back to original string
+   * @internal - Reserved for future use
+   * @param encryptedData - The hex encoded data to decrypt
+   * @returns The decrypted data as string
+   */
+  // @ts-expect-error Method will be used in future implementation
+  private decryptData(encryptedData: string): string {
+    return Buffer.from(encryptedData, "hex").toString("utf-8");
   }
 }
