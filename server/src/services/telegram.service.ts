@@ -104,7 +104,7 @@ export class TelegramService extends BaseService {
         {
           command: "execute",
           description:
-            "Find an agent, subscribe to its plans, submit a task to it, usage /execute <task_name>",
+            "Find an agent, subscribe to its plans, submit a task to it, usage /execute <task_name> <additional_query>",
         },
         {
           command: "fetch_agent_info",
@@ -194,17 +194,29 @@ export class TelegramService extends BaseService {
             `🔄 Submitting task to agent:\nAgent DID: ${agentDID}\nPlan DID: ${planDID}`
           );
 
-          const balance = await this.neverminedService?.submitTaskDynamically(
+          const query = `hello-demo-agent-${Date.now()}`;
+          await this.neverminedService?.submitTaskDynamically(
             agentDID,
-            planDID
-          );
-
-          if (!balance) {
-            throw new Error("Failed to submit task");
-          }
-
-          await ctx.reply(
-            `✅ Task submitted successfully! ${balance} credits remaining`
+            planDID,
+            query,
+            undefined,
+            // @ts-expect-error Nevermined service callback type
+            async (result: unknown) => {
+              let formattedResult = result;
+              // Try to parse and format if result is JSON string
+              try {
+                if (typeof result === "string") {
+                  formattedResult = JSON.parse(result);
+                }
+                await ctx.reply(
+                  `✅ Task completed!\n\nResult:\n<pre><code>${JSON.stringify(formattedResult, null, 2)}</code></pre>`,
+                  { parse_mode: "HTML" }
+                );
+              } catch {
+                // If parsing fails, send as plain text
+                await ctx.reply(`✅ Task completed!\n\nResult: ${result}`);
+              }
+            }
           );
         } catch (error) {
           console.error("Error in submit_task command:", error);
@@ -246,6 +258,13 @@ export class TelegramService extends BaseService {
 
       this.bot.command("execute", async (ctx) => {
         const taskName = ctx.message?.text.split(" ")[1] ?? "";
+        const query = ctx.message?.text.split(" ")[2] ?? "";
+        if (!query) {
+          await ctx.reply(
+            "Please provide a query. Usage: /execute <task_name> <query>"
+          );
+          return;
+        }
         if (!taskName) {
           await ctx.reply(
             "Please provide a task name. Usage: /execute <task_name>"
@@ -322,18 +341,20 @@ export class TelegramService extends BaseService {
 
           // Step 5: Submit the task
           await ctx.reply("📤 Submitting task to agent...");
-          const taskBalance =
-            await this.neverminedService?.submitTaskDynamically(
-              agentDID,
-              planDID
-            );
 
-          if (!taskBalance) {
-            throw new Error("Failed to submit task");
-          }
-
-          await ctx.reply(
-            `🎉 Task submitted successfully! ${taskBalance} credits remaining`
+          await this.neverminedService?.submitTaskDynamically(
+            agentDID,
+            planDID,
+            query,
+            undefined,
+            async (result) => {
+              await ctx.reply(
+                `🤖 Task Results:\n\n` +
+                  `📝 Input: ${result.input_query}\n` +
+                  `✨ Output: ${result.output}\n` +
+                  `💰 Cost: ${result.cost} Credits`
+              );
+            }
           );
         } catch (error) {
           console.error("Error in execute command:", error);

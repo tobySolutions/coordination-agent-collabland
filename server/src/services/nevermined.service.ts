@@ -504,11 +504,17 @@ export class NeverminedService extends BaseService {
   }
 
   public async submitTaskDynamically(
-    //FIXME: Remove after demo, should be dynamic
     agentDID: string,
     planDID: string,
     query = `hello-demo-agent-${Date.now()}`,
-    callback?: (data: string) => Promise<void>
+    callback?: (data: string) => Promise<void>,
+    resultCallback?: (result: {
+      task_id: string;
+      task_status: string;
+      output: string;
+      input_query: string;
+      cost: number;
+    }) => Promise<void>
   ): Promise<void> {
     if (!this.client) {
       throw new Error("NeverminedService not started");
@@ -531,6 +537,34 @@ export class NeverminedService extends BaseService {
       (async (data: string) => {
         console.log(`Received data:`);
         const parsedData = JSON.parse(data) as NeverminedTask;
+
+        if (parsedData.task_status === "Completed") {
+          const result = (await this.client?.query.getTaskWithSteps(
+            agentDID,
+            parsedData.task_id,
+            accessConfig
+          )) || {
+            output: "No result",
+          };
+
+          // Safely handle the Axios response
+          const resultData = "data" in result ? result.data : result;
+          console.log("Task results:", Object.keys(resultData));
+
+          const output = {
+            task_id: resultData.task.task_id,
+            task_status: resultData.task.task_status,
+            output: resultData.task.output,
+            input_query: resultData.task.input_query,
+            cost: resultData.task.cost,
+          };
+
+          // Call the resultCallback if provided
+          if (resultCallback) {
+            await resultCallback(output);
+          }
+        }
+
         console.dir(parsedData, { depth: null });
       });
     const { data } = await this.client.query.createTask(
