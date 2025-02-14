@@ -30,7 +30,7 @@ dotenv.config({
 
 // Initialize Express app
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3002;
 
 // Configure CORS with ALL allowed origins
 app.use(cors());

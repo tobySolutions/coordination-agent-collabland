@@ -57,6 +57,7 @@ export class NeverminedService extends BaseService {
 
     const planBalance = await this.getPlanCreditBalance();
     console.log(`[NeverminedService] Plan balance: ${planBalance}`);
+
     await this.client.query.subscribe(this.processQuery(this.client), {
       getPendingEventsOnSubscribe: false,
       joinAccountRoom: false,
@@ -243,10 +244,10 @@ export class NeverminedService extends BaseService {
     return async (data: AnyType) => {
       const eventData = JSON.parse(data);
       console.log("[NeverminedService] Event data: ", eventData);
-      await this.telegramService?.bot.api.sendMessage(
-        "-4729581369",
-        `Event data: ${JSON.stringify(eventData)}`
-      );
+      // await this.telegramService?.bot.api.sendMessage(
+      //   "-4729581369",
+      //   `Event data: ${JSON.stringify(eventData)}`
+      // );
       const step = (await payments.query.getStep(
         eventData.step_id
       )) as NeverminedStep;
@@ -298,10 +299,10 @@ export class NeverminedService extends BaseService {
                 ? "Steps created successfully."
                 : `Error creating steps: ${JSON.stringify(createResult.data)}`,
           });
-          await this.telegramService?.bot.api.sendMessage(
-            "-4729581369",
-            `Steps created successfully.`
-          );
+          // await this.telegramService?.bot.api.sendMessage(
+          //   "-4729581369",
+          //   `Steps created successfully.`
+          // );
 
           await payments.query.updateStep(step.did, {
             ...step,
@@ -318,10 +319,10 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Step received ${step.name}, fetching data...`,
           });
-          await this.telegramService?.bot.api.sendMessage(
-            "-4729581369",
-            `Step received ${step.name}, fetching data...`
-          );
+          // await this.telegramService?.bot.api.sendMessage(
+          //   "-4729581369",
+          //   `Step received ${step.name}, fetching data...`
+          // );
           const mockData = step.input_query ?? `step-1-mock-data-${Date.now()}`;
           await payments.query.logTask({
             level: "info",
@@ -348,10 +349,10 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.In_Progress,
             message: `Step 1 completed, data fetched`,
           });
-          await this.telegramService?.bot.api.sendMessage(
-            "-4729581369",
-            `Step 1 completed, data fetched`
-          );
+          // await this.telegramService?.bot.api.sendMessage(
+          //   "-4729581369",
+          //   `Step 1 completed, data fetched`
+          // );
           return;
         }
         case "encryptData": {
@@ -394,10 +395,10 @@ export class NeverminedService extends BaseService {
             task_status: AgentExecutionStatus.Completed,
             message: `Step 2, data fetched and encrypted`,
           });
-          await this.telegramService?.bot.api.sendMessage(
-            "-4729581369",
-            `Step 2, data fetched and encrypted`
-          );
+          // await this.telegramService?.bot.api.sendMessage(
+          //   "-4729581369",
+          //   `Step 2, data fetched and encrypted`
+          // );
           return;
         }
         default: {
@@ -406,10 +407,10 @@ export class NeverminedService extends BaseService {
             task_id: step.task_id,
             message: `Unknown step ${step.name}, Skipping...`,
           });
-          await this.telegramService?.bot.api.sendMessage(
-            "-4729581369",
-            `Unknown step ${step.name}, Skipping...`
-          );
+          // await this.telegramService?.bot.api.sendMessage(
+          //   "-4729581369",
+          //   `Unknown step ${step.name}, Skipping...`
+          // );
           return;
         }
       }
