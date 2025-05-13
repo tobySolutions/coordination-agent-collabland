@@ -14,7 +14,7 @@ elizaLogger.verbose = true;
 import { SqliteDatabaseAdapter } from "@ai16z/adapter-sqlite";
 import Database from "better-sqlite3";
 import path from "path";
-import { readFileSync, existsSync } from "fs";
+import fs, { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 import { gateDataPlugin } from "../plugins/gated-storage-plugin/index.js";
 
@@ -574,6 +574,40 @@ export class ElizaService extends BaseService {
 
     const sqlitePath = path.join(__dirname, "..", "..", "..", "eliza.sqlite");
     elizaLogger.info("Using SQLite database at:", sqlitePath);
+
+    // Determine expected embedding dimension (e.g. 768 for nomic-embed)
+    const expectedEmbeddingDim = getEmbeddingZeroVector().length;
+
+    if (fs.existsSync(sqlitePath)) {
+      const tempDb = new Database(sqlitePath);
+      try {
+        const result = tempDb.prepare("PRAGMA table_info(memory)").all() as {
+          name: string;
+          type: string;
+        }[];
+
+        const vectorCol = result.find((col) => col.name === "embedding");
+        const match = vectorCol?.type?.match(/VECTOR\[(\d+)\]/);
+
+        if (match) {
+          const actualDim = parseInt(match[1], 10);
+          if (actualDim !== expectedEmbeddingDim) {
+            console.warn(
+              `🛑 Embedding dimension mismatch: expected ${expectedEmbeddingDim}, but DB has ${actualDim}. Deleting DB...`
+            );
+            tempDb.close();
+            fs.unlinkSync(sqlitePath);
+          }
+        }
+      } catch (err) {
+        console.warn(
+          "⚠️ Failed to validate DB schema. Rebuilding from scratch."
+        );
+        tempDb.close();
+        fs.unlinkSync(sqlitePath);
+      }
+    }
+
     // Initialize SQLite adapter
     const db = new SqliteDatabaseAdapter(new Database(sqlitePath));
 
@@ -590,7 +624,7 @@ export class ElizaService extends BaseService {
       this.runtime = new AgentRuntime({
         databaseAdapter: db,
         token: process.env.GAIANET_API_KEY || "",
-        modelProvider: character.modelProvider || ModelProviderName.OPENAI,
+        modelProvider: character.modelProvider || ModelProviderName.GAIANET,
         character,
         conversationLength: 4096,
         plugins: [bootstrapPlugin, collablandPlugin, gateDataPlugin],
