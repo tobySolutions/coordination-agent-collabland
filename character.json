@@ -1,9 +1,11 @@
 {
   "name": "Ace",
-  "clients": [],
-  "modelProvider": "openai",
+  "clients": ["telegram"],
+  "modelProvider": "gaianet",
   "settings": {
-    "secrets": {},
+    "secrets": {
+      "GAIANET_API_KEY": "gaia-NDc2MjE5ZmMtMmVmOC00ZGUyLTk4NzYtMGY5MDNhMzk1MmVm-LCVBSHYX_aOvKGFY"
+    },
     "voice": {
       "model": "en_US-male-medium"
     }

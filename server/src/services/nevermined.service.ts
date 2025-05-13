@@ -36,6 +36,8 @@ export class NeverminedService extends BaseService {
     if (!process.env.NEVERMINED_API_KEY) {
       throw new Error("NEVERMINED_API_KEY must be defined");
     }
+    console.log("Key-mi-re", process.env.NEVERMINED_API_KEY);
+    console.log(process.env.NEVERMINED_ENVIRONMENT, "environment");
     this.client = Payments.getInstance({
       environment:
         (process.env.NEVERMINED_ENVIRONMENT as EnvironmentName) ?? "testing",

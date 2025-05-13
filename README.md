@@ -562,3 +562,10 @@ lit-actions/
 ```
 
 For more details, check the [Lit Protocol docs](https://developer.litprotocol.com/v3/).
+
+
+## Notes
+
+- Run `ngrok http 3001` for the backend with Ngrok and copy the URL to `NGROK URL`
+- Your frontend will be on port 3000 by default and `NEXT_PUBLIC_HOSTNAME` will be your frontend NGROK URL.
+- `PORT` is your backend port
